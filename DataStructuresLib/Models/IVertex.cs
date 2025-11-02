@@ -17,12 +17,12 @@ public interface IVertex<TElement>
     /// vertices and values being the edges.
     /// </summary>
     /// <returns></returns>
-    IMap<IVertex<TElement>, object> GetOutgoingEdges();
+    IMap<IVertex<TElement>, object>? GetOutgoingEdges();
 
     /// <summary>
     /// Returns a reference to the map of incoming edges, with keys being the adjacent
     /// vertices and values being the edges.
     /// </summary>
     /// <returns></returns>
-    IMap<IVertex<TElement>, object> GetIncomingEdges();
+    IMap<IVertex<TElement>, object>? GetIncomingEdges();
 }

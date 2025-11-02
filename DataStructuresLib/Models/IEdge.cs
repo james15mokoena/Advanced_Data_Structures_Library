@@ -16,5 +16,5 @@ public interface IEdge<TElement>
     /// Returns a references to an array containing the endpoints of the edge.
     /// </summary>
     /// <returns></returns>
-    IVertex<object>[] GetEndpoints();
+    IVertex<object>[]? GetEndpoints();
 }
