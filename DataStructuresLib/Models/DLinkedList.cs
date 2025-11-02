@@ -76,7 +76,7 @@ public class DLinkedList<T> : IPositionalList<T>, IEnumerable<T>
     }
 
     // TC: O(1)
-    public IPosition<T>? AddFirst(T element)
+    public IPosition<T> AddFirst(T element)
     {
         if (_head == null)
         {
@@ -96,7 +96,7 @@ public class DLinkedList<T> : IPositionalList<T>, IEnumerable<T>
     }
 
     // TC: O(1)
-    public IPosition<T>? AddLast(T element)
+    public IPosition<T> AddLast(T element)
     {
         if (_tail == null)
             return AddFirst(element);

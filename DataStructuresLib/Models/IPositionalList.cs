@@ -52,7 +52,7 @@ public interface IPositionalList<T>
     /// </summary>
     /// <param name="element"></param>
     /// <returns></returns>
-    IPosition<T>? AddFirst(T element);
+    IPosition<T> AddFirst(T element);
 
     /// <summary>
     /// Inserts a new element at the back of the list, returning the
@@ -60,7 +60,7 @@ public interface IPositionalList<T>
     /// </summary>
     /// <param name="element"></param>
     /// <returns></returns>
-    IPosition<T>? AddLast(T element);
+    IPosition<T> AddLast(T element);
 
     /// <summary>
     /// Inserts a new element in the list, just before position pos, returning
