@@ -1,7 +1,7 @@
 namespace DataStructuresLib.Models;
 
 /// <summary>
-/// An abstraction of the Vertex of a Graph ADT.
+/// An abstraction of the Vertex of the Graph ADT.
 /// </summary>
 /// <typeparam name="TElement"></typeparam>
 public interface IVertex<TElement>
