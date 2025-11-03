@@ -27,7 +27,13 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
     /// </summary>
     private readonly bool _isGraphDirected = isGraphDirected;
 
-    public IEnumerable<IEdge<TEdge,TVertex>>? Edges()
+    /// <summary>
+    /// Returns a value indicating whether the graph is directed or undirected.
+    /// </summary>
+    /// <returns>true if the graph is directed, otherwise false.</returns>
+    public bool IsGraphDirected() => _isGraphDirected == true;
+
+    public IEnumerable<IEdge<TEdge, TVertex>>? Edges()
     {
         if (!_edges.IsEmpty())
         {
@@ -49,11 +55,10 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
 
         if (origin is Vertex<TVertex,TEdge> orig && destination is Vertex<TVertex,TEdge> dest)
         {
-
-            if (orig.GetOutgoingEdges().Size() < dest.GetIncomingEdges().Size())
-                edge = (IEdge<TEdge,TVertex>?)orig.GetOutgoingEdges().GetValue(dest);
-            else if (orig.GetOutgoingEdges().Size() > dest.GetIncomingEdges().Size())
-                edge = (IEdge<TEdge,TVertex>?)dest.GetIncomingEdges().GetValue(orig);
+            if (orig.GetOutgoingEdges().Size() <= dest.GetIncomingEdges().Size())
+                edge = orig.GetOutgoingEdges().GetValue(dest);
+            else if (dest.GetIncomingEdges().Size() < orig.GetOutgoingEdges().Size())
+                edge = dest.GetIncomingEdges().GetValue(orig);
         }
 
         return edge;
@@ -64,7 +69,7 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
         if(vertex is Vertex<TVertex,TEdge> realVertex && !realVertex.GetIncomingEdges().IsEmpty())
         {
             foreach (var edge in realVertex.GetIncomingEdges().Values())
-                yield return (IEdge<TEdge,TVertex>) edge;
+                yield return edge;
         }
     }
 
@@ -80,17 +85,19 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
     {
         if (origin is Vertex<TVertex,TEdge> orig && destination is Vertex<TVertex,TEdge> dest)
         {
-            if (GetEdge(orig, dest) is null)
-            {
-                Edge<TEdge,TVertex> newEdge = new(orig, dest, element);
+            // No parallel edges or self-loops are allowed.            
+            if (GetEdge(orig, dest) is null && GetEdge(dest, orig) is null && orig != dest)
+            {                
+                Edge<TEdge, TVertex> newEdge = new(orig, dest, element);
                 newEdge.SetPosition(_edges.AddLast(newEdge));
                 orig.GetOutgoingEdges().Put(dest, newEdge);
                 dest.GetIncomingEdges().Put(orig, newEdge);
                 return newEdge;
             }
-            else
-                throw new EdgeExistsException("An edge already exists between these vertices.");
-
+            else if(orig != dest)
+                throw new EdgeExistsException("An edge already exists between these vertices. Simple graphs (directed or undirected) do not allow parallel edges.");
+            else if (orig == dest)
+                throw new EdgeExistsException("Simple graphs (directed or undirected) do not allow self-loops.");
         }
         return null;
     }
@@ -134,7 +141,7 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
         if(vertex is Vertex<TVertex,TEdge> realVertex && !realVertex.GetOutgoingEdges().IsEmpty())
         {
             foreach (var edge in realVertex.GetOutgoingEdges().Values())
-                yield return (IEdge<TEdge,TVertex>) edge;
+                yield return edge;
         }
     }
 
@@ -228,11 +235,7 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
         /// <param name="incomingEdge"></param>
         public void InsertIncomingEdge(IEdge<E,V> incomingEdge) => _incomingEdges.Put(this, (Edge<E,V>)incomingEdge!);
 
-        public IMap<IVertex<V, E>, IEdge<E,V>> GetOutgoingEdges()
-        {
-            IMap<IVertex<V, E>, object> map = (IMap<IVertex<V, E>, object>)new HashMap<IVertex<V, E>, IEdge<TEdge,TVertex>>();
-            return default;
-        }
+        public IMap<IVertex<V, E>, IEdge<E, V>> GetOutgoingEdges() => _outgoingEdges;
 
         /// <summary>
         /// Adds an outgoing edge to a vertex's outgoing edges map.
