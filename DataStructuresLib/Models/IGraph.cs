@@ -119,5 +119,11 @@ public interface IGraph<TVertex, TEdge>
     /// </summary>
     /// <param name="edge"></param>
     /// <returns>true if the edge is successfully removed, otherwise false.</returns>
-    bool RemoveEdge(IEdge<TEdge,TVertex> edge);
+    bool RemoveEdge(IEdge<TEdge, TVertex> edge);
+
+    /// <summary>
+    /// Removes all vertices and edges from the graph.
+    /// </summary>
+    /// <returns></returns>
+    bool Clear();
 }

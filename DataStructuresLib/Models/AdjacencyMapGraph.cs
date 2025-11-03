@@ -1,4 +1,5 @@
 
+using System.Collections;
 using DataStructuresLib.Exceptions;
 
 namespace DataStructuresLib.Models;
@@ -147,21 +148,87 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
 
     public bool RemoveEdge(IEdge<TEdge,TVertex> edge)
     {
-        throw new NotImplementedException();
+        if (!_edges.IsEmpty() && edge is Edge<TEdge, TVertex> realEdge)
+        {
+            if(realEdge.GetEndpoints()![0] != null && realEdge.GetEndpoints()![1] != null)
+            {
+                if(_edges.Remove(realEdge.GetPosition()) is not null)
+                    return realEdge.RemoveEndpoints();
+            }
+        }
+
+        return false;
     }
 
     public bool RemoveVertex(IVertex<TVertex,TEdge> vertex)
     {
-        throw new NotImplementedException();
+        if(!_vertices.IsEmpty() && vertex is Vertex<TVertex,TEdge> realVertex)
+        {
+            // remove all outgoing edges.
+            if (!realVertex.GetOutgoingEdges().IsEmpty())
+            {
+                // will temporarily store outgoing edges to be removed.
+                List<Edge<TEdge, TVertex>> edges = [];
+
+                foreach (var edge in realVertex.GetOutgoingEdges().Values())
+                    edges.Add((Edge<TEdge, TVertex>)edge);
+
+                // remove all outgoing edges that are incident from this vertex.
+                for (int e = 0; e < edges.Count; ++e)
+                    RemoveEdge(edges.ElementAt(e));                
+            }
+
+            // return early if the graph is undirected.
+            if (!IsGraphDirected())
+            {
+                // remove the vertex
+                _vertices.Remove(realVertex.GetPosition());
+                return realVertex.GetOutgoingEdges().IsEmpty() && realVertex.GetIncomingEdges().IsEmpty();
+            }
+
+            // if the graph is directed, then remove all edges incident to this vertex.
+            if (IsGraphDirected() && !realVertex.GetIncomingEdges().IsEmpty())
+            {
+                // will temporarily store incoming edges to be removed.
+                List<Edge<TEdge, TVertex>> edges = [];
+
+                foreach (var edge in realVertex.GetIncomingEdges().Values())
+                    edges.Add((Edge<TEdge, TVertex>)edge);
+
+                // remove all incoming edges that are incident to this vertex.
+                for (int e = 0; e < edges.Count; ++e)
+                    RemoveEdge(edges.ElementAt(e));
+            }
+            
+            // remove the vertex
+            _vertices.Remove(realVertex.GetPosition());
+            return realVertex.GetOutgoingEdges().IsEmpty() && realVertex.GetIncomingEdges().IsEmpty();
+            
+        }
+        return false;
     }
 
-    public IEnumerable<IVertex<TVertex,TEdge>>? Vertices()
+    public IEnumerable<IVertex<TVertex, TEdge>>? Vertices()
     {
         if (!_vertices.IsEmpty())
         {
             foreach (var vertex in _vertices)
                 yield return vertex;
         }
+    }
+    
+    public bool Clear()
+    {        
+        // will temporarily store the vertices to be removed.
+        List<Vertex<TVertex, TEdge>> vertices = [];
+
+        foreach (var vertex in _vertices)
+            vertices.Add(vertex);
+
+        for (int v = 0; v < vertices.Count; ++v)
+            RemoveVertex(vertices[v]);
+        
+        return _vertices.IsEmpty() && _edges.IsEmpty();
     }
 
     /// <summary>
@@ -184,11 +251,11 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
         /// <summary>
         /// Stores the outgoing edges from the vertex.
         /// </summary>
-        private readonly IMap<IVertex<V, E>, IEdge<E,V>> _outgoingEdges;
+        private HashMap<IVertex<V, E>, IEdge<E,V>>? _outgoingEdges;
         /// <summary>
         /// Stores the incoming edges to the vertex.
         /// </summary>
-        private readonly IMap<IVertex<V, E>, IEdge<E,V>> _incomingEdges;
+        private HashMap<IVertex<V, E>, IEdge<E,V>>? _incomingEdges;
 
         public Vertex(V element, bool isGraphDirected)
         {
@@ -211,7 +278,7 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
         /// Returns the position where this vertex is located in the vertex list of the graph.
         /// </summary>
         /// <returns></returns>
-        public IPosition<IVertex<V, E>>? GetPosition() => (IPosition<IVertex<V, E>>?)_position;
+        public IPosition<Vertex<V, E>>? GetPosition() => _position;
 
         /// <summary>
         /// Sets the position in the vertex list of the graph where this vertex is located.
@@ -227,21 +294,33 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
                 throw new InvalidCastException("Cannot cast IPosition<IVertex<V>> to IPosition<Vertex<V>>, check your types.");
         }
 
-        public IMap<IVertex<V, E>, IEdge<E,V>> GetIncomingEdges() => _incomingEdges;
+        public IMap<IVertex<V, E>, IEdge<E,V>> GetIncomingEdges() => _incomingEdges!;
 
         /// <summary>
         /// Adds an incoming edge to a vertex's incoming edges map.
         /// </summary>
         /// <param name="incomingEdge"></param>
-        public void InsertIncomingEdge(IEdge<E,V> incomingEdge) => _incomingEdges.Put(this, (Edge<E,V>)incomingEdge!);
+        public void InsertIncomingEdge(IEdge<E,V> incomingEdge) => _incomingEdges!.Put(this, (Edge<E,V>)incomingEdge!);
 
-        public IMap<IVertex<V, E>, IEdge<E, V>> GetOutgoingEdges() => _outgoingEdges;
+        public IMap<IVertex<V, E>, IEdge<E, V>> GetOutgoingEdges() => _outgoingEdges!;
 
         /// <summary>
         /// Adds an outgoing edge to a vertex's outgoing edges map.
         /// </summary>
         /// <param name="outgoingEdge"></param>
-        public void InsertOutgoingEdge(IEdge<E,V> outgoingEdge) => _outgoingEdges.Put(this, outgoingEdge!);
+        public void InsertOutgoingEdge(IEdge<E, V> outgoingEdge) => _outgoingEdges!.Put(this, outgoingEdge!);
+        
+        /// <summary>
+        /// Removes all edges incident to this vertex, when the vertex is being removed from the graph.
+        /// </summary>
+        public void RemoveIncidentEdges()
+        {
+            if (_outgoingEdges != null)
+                _outgoingEdges = null;
+
+            if (_incomingEdges != null)
+                _incomingEdges = null;
+        }
     }
 
     /// <summary>
@@ -264,11 +343,11 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
         /// <summary>
         /// The vertices that are connected by this edge.
         /// </summary>
-        private readonly Vertex<TVertex,E>[]? _endpoints;
+        private Vertex<V,E>[]? _endpoints;
 
-        public Edge(IVertex<TVertex,E> origin, IVertex<TVertex,E> destination, E element)
+        public Edge(IVertex<V,E> origin, IVertex<V,E> destination, E element)
         {
-            if (origin is Vertex<TVertex,E> orig && destination is Vertex<TVertex,E> dest)
+            if (origin is Vertex<V,E> orig && destination is Vertex<V,E> dest)
             {
                 _endpoints = [orig, dest];                
                 _element = element;
@@ -281,7 +360,7 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
         /// Returns the position where this edge is located in the edge list of the graph.
         /// </summary>
         /// <returns></returns>
-        public IPosition<IEdge<E,V>>? GetPosition() => (IPosition<IEdge<E,V>>?)_position;
+        public IPosition<Edge<E,V>>? GetPosition() => _position;
 
         /// <summary>
         /// Sets the position in the edge list of the graph where this edge is located.
@@ -305,6 +384,22 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
 
         public E? GetElement() => _element;
 
-        public IVertex<V,E>[]? GetEndpoints() => (IVertex<V,E>[]?) _endpoints;
+        public IVertex<V, E>[]? GetEndpoints() => _endpoints;
+        
+        /// <summary>
+        /// It is responsible for removing the endpoints when the edge is being removed from
+        /// the graph.
+        /// </summary>
+        public bool RemoveEndpoints()
+        {
+            Vertex<V, E> origin = _endpoints![0];
+            Vertex<V, E> dest = _endpoints![1];
+            origin.GetOutgoingEdges().Remove(dest);
+            dest.GetIncomingEdges().Remove(origin);
+            _endpoints = null;
+            return _endpoints == null &&
+                (origin.GetOutgoingEdges().GetValue(dest) is null || origin.GetOutgoingEdges().GetValue(dest)!.Equals(default(Vertex<V, E>))) &&
+                (dest.GetIncomingEdges().GetValue(origin) is null || dest.GetIncomingEdges().GetValue(origin)!.Equals(default(Vertex<V, E>)));
+        }
     }
 }

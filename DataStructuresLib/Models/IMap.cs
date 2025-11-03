@@ -62,4 +62,10 @@ public interface IMap<TKey, TValue>
     /// </summary>
     /// <returns></returns>
     IEnumerable<IEntry<TKey, TValue>> EntrySet();
+
+    /// <summary>
+    /// Removes all entries from the map.
+    /// </summary>
+    /// <returns></returns>
+    bool Clear();
 }

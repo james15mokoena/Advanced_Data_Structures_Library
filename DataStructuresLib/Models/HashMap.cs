@@ -290,8 +290,9 @@ public class HashMap<TKey, TValue> : IMap<TKey, TValue>
         int hash = ComputeHash(key);
 
         // O(n)
-        if (hash >= 0 && hash < _table?.Length && GetValue(key) == null && _table[hash] is DLinkedList<MapEntry<TKey, TValue>> bucket)
+        if (hash >= 0 && hash < _table?.Length && (GetValue(key) is null || GetValue(key)!.Equals(default(TValue))) && _table[hash] is DLinkedList<MapEntry<TKey, TValue>> bucket)
         {
+            
             // O(1)
             if ((double)_size / (double)_table.Length >= 0.7)
             {
@@ -323,7 +324,7 @@ public class HashMap<TKey, TValue> : IMap<TKey, TValue>
     {
         int hash = ComputeHash(key);
 
-        if (hash >= 0 && hash < _table!.Length && GetValue(key) != null && _table[hash] is DLinkedList<MapEntry<TKey, TValue>> bucket)
+        if (hash >= 0 && hash < _table!.Length && (GetValue(key) != null || !GetValue(key)!.Equals(default(TValue))) && _table[hash] is DLinkedList<MapEntry<TKey, TValue>> bucket)
         {
             var mapEntry = bucket.Remove(bucket.FindPosition(new(key, GetValue(key))));
             if (mapEntry != null)
@@ -353,6 +354,21 @@ public class HashMap<TKey, TValue> : IMap<TKey, TValue>
                 }
             }
         }
+    }
+
+    // TC: O(m + n), where m is the number of buckets in the table and n is the of entries in the map.
+    public bool Clear()
+    {
+        if (!IsEmpty())
+        {
+            foreach (var bucket in _table!)
+                bucket.Clear();
+
+            _table = null;
+            _size = 0;
+            return _size == 0 && _table == null;
+        }
+        return false;
     }
 
     /// <summary>
@@ -402,7 +418,7 @@ public class HashMap<TKey, TValue> : IMap<TKey, TValue>
             if (other is not MapEntry<K, V> mapObj) return false;
 
             bool isEqual = mapObj.GetKey()!.Equals(_key) && mapObj.GetValue()!.Equals(_value);
-            
+
             return isEqual;
         }
 

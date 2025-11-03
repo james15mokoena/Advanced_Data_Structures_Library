@@ -96,4 +96,10 @@ public interface IPositionalList<T>
     /// <param name="pos"></param>
     /// <returns></returns>
     T? Remove(IPosition<T>? pos);
+
+    /// <summary>
+    /// Removes every element in the list.
+    /// </summary>
+    /// <returns></returns>
+    bool Clear();
 }

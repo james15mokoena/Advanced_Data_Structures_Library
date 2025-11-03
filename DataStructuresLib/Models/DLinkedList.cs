@@ -251,6 +251,36 @@ public class DLinkedList<T> : IPositionalList<T>, IEnumerable<T>
         return GetEnumerator();
     }
 
+    // TC: O(n), where n is the number of elements in the list.
+    public bool Clear()
+    {
+        if (!IsEmpty())
+        {
+            while (_head != null)
+            {
+                //DLLNode<T>? prev = currPos.GetPrev();
+                DLLNode<T>? next = _head.GetNext();
+
+                if (next != null)
+                {
+                    next.SetPrev(null);
+                    _head.SetNext(null);
+                    _head = next;
+                    --_size;
+                }
+                else
+                {
+                    _head = _tail = null;
+                    --_size;
+                    break;
+                }                
+            }
+
+            return _size == 0 && _head == null && _tail == null;
+        }
+        return false;
+    }
+
     /// <summary>
     /// A doubly linked list node.
     /// </summary>
