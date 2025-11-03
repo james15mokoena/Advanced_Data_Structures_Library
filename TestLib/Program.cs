@@ -60,6 +60,7 @@ Console.WriteLine($"Remove Edge: {countryMap.RemoveEdge(e3!)}");
 Console.WriteLine($"Num Edges: {countryMap.NumEdges()}");
 Console.WriteLine($"Remove Edge: {countryMap.RemoveEdge(e3!)}");
 Console.WriteLine($"Num Edges: {countryMap.NumEdges()}");
+*/
 Console.WriteLine($"Remove Vertex: {countryMap.RemoveVertex(v1)}");
 Console.WriteLine($"Num vertices: {countryMap.NumVertices()}");
 Console.WriteLine($"Num Edges: {countryMap.NumEdges()}");
@@ -68,4 +69,4 @@ Console.WriteLine($"Num vertices: {countryMap.NumVertices()}");
 Console.WriteLine($"Num Edges: {countryMap.NumEdges()}");
 Console.WriteLine($"Remove Vertex: {countryMap.RemoveVertex(v3)}");
 Console.WriteLine($"Num vertices: {countryMap.NumVertices()}");
-Console.WriteLine($"Num Edges: {countryMap.NumEdges()}");*/
+Console.WriteLine($"Num Edges: {countryMap.NumEdges()}");

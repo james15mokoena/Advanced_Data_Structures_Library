@@ -175,7 +175,7 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
 
                 // remove all outgoing edges that are incident from this vertex.
                 for (int e = 0; e < edges.Count; ++e)
-                    RemoveEdge(edges.ElementAt(e));                
+                    RemoveEdge(edges.ElementAt(e));
             }
 
             // return early if the graph is undirected.
