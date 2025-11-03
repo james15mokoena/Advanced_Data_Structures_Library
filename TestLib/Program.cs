@@ -38,8 +38,16 @@ var e2 = countryMap.InsertEdge(v1, v3, 30);
 var e3 = countryMap.InsertEdge(v2, v3, 25);
 var e4 = countryMap.InsertEdge(v3, v4, 40);
 var e5 = countryMap.InsertEdge(v5, v4, 25);
+var e6 = countryMap.InsertEdge(v5, v1, 25);
 
-Console.WriteLine($"Is Graph cleared: {countryMap.Clear()}");
+Console.WriteLine($"In-degree: {countryMap.InDegree(v1)}");
+Console.WriteLine($"Out-degree: {countryMap.OutDegree(v1)}");
+Console.WriteLine($"In-degree: {countryMap.InDegree(v5)}");
+Console.WriteLine($"Out-degree: {countryMap.OutDegree(v5)}");
+Console.WriteLine($"Opposite: {countryMap.Opposite(v1, e2!)?.GetElement()}");
+Console.WriteLine($"Opposite: {countryMap.Opposite(v3,e2!)?.GetElement()}");
+
+//Console.WriteLine($"Is Graph cleared: {countryMap.Clear()}");
 
 
 /*Console.WriteLine($"Num Vertices: {countryMap.NumVertices()}");
