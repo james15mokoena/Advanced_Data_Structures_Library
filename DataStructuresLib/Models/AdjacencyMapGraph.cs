@@ -50,14 +50,17 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
                         // get the adjacent vertex
                         IVertex<TVertex, TEdge> adjVertex = grp.Opposite(startVertex, edge)!;
 
-                        // record the discovery edge with the discovered vertex.
-                        discoveryEdges.Put(adjVertex, edge);
+                        if (!adjVertex.IsVisited())
+                        {
+                            // record the discovery edge with the discovered vertex.
+                            discoveryEdges.Put(adjVertex, edge);
 
-                        // mark the edge as visited
-                        ((Edge<TEdge, TVertex>)edge).SetVisited(true);
+                            // mark the edge as visited
+                            ((Edge<TEdge, TVertex>)edge).SetVisited(true);
 
-                        // visit the discovered vertex.
-                        DFS(grp, adjVertex, discoveryEdges);
+                            // visit the discovered vertex.
+                            DFS(grp, adjVertex, discoveryEdges);   
+                        }                        
                     }
                 }
             }

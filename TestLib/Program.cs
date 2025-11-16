@@ -25,7 +25,7 @@ Console.WriteLine($"Is Cleared: {map.Clear()}");
 Console.WriteLine($"Size: {map.Size()}");*/
 
 
-AdjacencyMapGraph<string, int> countryMap = new(true);
+AdjacencyMapGraph<string, int> countryMap = new(false);
 
 var v1 = countryMap.InsertVertex("Qalabotjha");
 var v2 = countryMap.InsertVertex("Villiers");
@@ -38,12 +38,11 @@ var e2 = countryMap.InsertEdge(v1, v3, 30);
 var e3 = countryMap.InsertEdge(v2, v3, 25);
 var e4 = countryMap.InsertEdge(v3, v4, 40);
 var e5 = countryMap.InsertEdge(v5, v4, 25);
-var e6 = countryMap.InsertEdge(v5, v1, 25);
+//var e6 = countryMap.InsertEdge(v5, v1, 25);
 
 HashMap<IVertex<string, int>, IEdge<int, string>> map = new();
 
-/// CHECK WHY FOR UNDIRECTED IT DOES NOT GIVE CORRECT RESPONSE...
-AdjacencyMapGraph<string, int>.DFS(countryMap, v4, map);
+AdjacencyMapGraph<string, int>.DFS(countryMap, v5, map);
 
 Console.WriteLine($"Reachable: {map.EntrySet().Count()}");
 
