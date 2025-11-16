@@ -25,5 +25,11 @@ public interface IVertex<TVertex,TEdge>
     /// vertices and values being the edges.
     /// </summary>
     /// <returns></returns>
-    IMap<IVertex<TVertex,TEdge>, IEdge<TEdge,TVertex>> GetIncomingEdges();
+    IMap<IVertex<TVertex, TEdge>, IEdge<TEdge, TVertex>> GetIncomingEdges();
+
+    /// <summary>
+    /// It is used in graph traversal algorithms to determine if the vertex has been visited.
+    /// </summary>
+    /// <returns>true if the vertex has been visited, otherwise false.</returns>
+    bool IsVisited();
 }

@@ -46,7 +46,7 @@ public interface IGraph<TVertex, TEdge>
     /// </summary>
     /// <param name="edge"></param>
     /// <returns></returns>
-    IVertex<TVertex,TEdge>[]? EndVertices(IEdge<TEdge,TVertex> edge);
+    IVertex<TVertex, TEdge>[]? EndVertices(IEdge<TEdge, TVertex> edge);
 
     /// <summary>
     /// For edge "edge" incident to vertex "endpoint", it returns the other vertex of the edge. An error
@@ -55,7 +55,7 @@ public interface IGraph<TVertex, TEdge>
     /// <param name="endpoint"></param>
     /// <param name="edge"></param>
     /// <returns></returns>
-    /// <exception cref="a"
+    /// <exception cref="EdgeNotIncidentException"></exception>
     IVertex<TVertex,TEdge>? Opposite(IVertex<TVertex,TEdge> endpoint, IEdge<TEdge,TVertex> edge);
 
     /// <summary>

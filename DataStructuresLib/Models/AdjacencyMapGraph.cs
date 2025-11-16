@@ -29,6 +29,43 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
     private readonly bool _isGraphDirected = isGraphDirected;
 
     /// <summary>
+    /// It implements a <b>Depth-First Search</b> traversal of a graph.
+    /// </summary>
+    /// <param name="graph"></param>
+    /// <param name="startVertex"></param>
+    /// <param name="discoveryEdges">It associates each vertex with the edge that discovers it.</param>
+    public static void DFS(IGraph<TVertex, TEdge> graph, IVertex<TVertex, TEdge> startVertex, HashMap<IVertex<TVertex,TEdge>,IEdge<TEdge,TVertex>> discoveryEdges)
+    {
+        if(graph is AdjacencyMapGraph<TVertex,TEdge> grp && startVertex is Vertex<TVertex,TEdge> vertex)
+        {
+            if (!vertex.IsVisited())
+            {
+                // mark the vertex as "visited".
+                vertex.SetVisited(true);
+
+                foreach(var edge in vertex.GetOutgoingEdges().Values())
+                {
+                    if (!edge.IsVisited())
+                    {
+                        // get the adjacent vertex
+                        IVertex<TVertex, TEdge> adjVertex = grp.Opposite(startVertex, edge)!;
+
+                        // record the discovery edge with the discovered vertex.
+                        discoveryEdges.Put(adjVertex, edge);
+
+                        // mark the edge as visited
+                        ((Edge<TEdge, TVertex>)edge).SetVisited(true);
+
+                        // visit the discovered vertex.
+                        DFS(grp, adjVertex, discoveryEdges);
+                    }
+                }
+            }
+        }
+        
+    }
+
+    /// <summary>
     /// Returns a value indicating whether the graph is directed or undirected.
     /// </summary>
     /// <returns>true if the graph is directed, otherwise false.</returns>
@@ -244,6 +281,20 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
         private V? _element;
 
         /// <summary>
+        /// Indicates whether this vertex has been visited in during graph traversal
+        /// either by DFS or BFS.
+        /// </summary>
+        private bool _isVisited;
+
+        public bool IsVisited() => _isVisited;
+
+        /// <summary>
+        /// Updates the isVisited stated of the vertex.
+        /// </summary>
+        /// <param name="visited"></param>
+        public void SetVisited(bool visited) => _isVisited = visited;
+
+        /// <summary>
         /// Stores a reference to the position in the vertex list where this vertex is located.
         /// </summary>
         private IPosition<Vertex<V, E>>? _position;
@@ -336,9 +387,23 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
         private E? _element;
 
         /// <summary>
+        /// Indicates whether this edge has been visited in during graph traversal
+        /// either by DFS or BFS.
+        /// </summary>
+        private bool _isVisited;
+
+        public bool IsVisited() => _isVisited;
+
+        /// <summary>
+        /// Updates the isVisited stated of the edge.
+        /// </summary>
+        /// <param name="visited"></param>
+        public void SetVisited(bool visited) => _isVisited = visited;
+
+        /// <summary>
         /// The location of the edge in the edge list of the graph.
         /// </summary>
-        private IPosition<Edge<E,V>>? _position;
+        private IPosition<Edge<E, V>>? _position;
 
         /// <summary>
         /// The vertices that are connected by this edge.
