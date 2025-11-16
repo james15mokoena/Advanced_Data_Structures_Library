@@ -25,7 +25,7 @@ Console.WriteLine($"Is Cleared: {map.Clear()}");
 Console.WriteLine($"Size: {map.Size()}");*/
 
 
-AdjacencyMapGraph<string, int> countryMap = new(false);
+AdjacencyMapGraph<string, int> countryMap = new(true);
 
 var v1 = countryMap.InsertVertex("Qalabotjha");
 var v2 = countryMap.InsertVertex("Villiers");
@@ -42,7 +42,7 @@ var e5 = countryMap.InsertEdge(v5, v4, 25);
 
 HashMap<IVertex<string, int>, IEdge<int, string>> map = new();
 
-AdjacencyMapGraph<string, int>.DFS(countryMap, v5, map);
+AdjacencyMapGraph<string, int>.DFS(countryMap, v1, map);
 
 Console.WriteLine($"Reachable: {map.EntrySet().Count()}");
 
