@@ -25,7 +25,7 @@ Console.WriteLine($"Is Cleared: {map.Clear()}");
 Console.WriteLine($"Size: {map.Size()}");*/
 
 
-AdjacencyMapGraph<string, int> countryMap = new(true);
+AdjacencyMapGraph<string, int> countryMap = new(false);
 
 var v1 = countryMap.InsertVertex("Qalabotjha");
 var v2 = countryMap.InsertVertex("Villiers");
@@ -40,11 +40,46 @@ var e4 = countryMap.InsertEdge(v3, v4, 40);
 var e5 = countryMap.InsertEdge(v5, v4, 25);
 //var e6 = countryMap.InsertEdge(v5, v1, 25);
 
+// will store the result of DFS on the graph.
 HashMap<IVertex<string, int>, IEdge<int, string>> map = new();
 
-AdjacencyMapGraph<string, int>.DFS(countryMap, v1, map);
+// perform DFS
+//AdjacencyMapGraph<string, int>.DFS(countryMap, v1, map);
 
-Console.WriteLine($"Reachable: {map.EntrySet().Count()}");
+//Console.WriteLine($"Forest length: {map.Size()}");
+
+// construct a path.
+IPositionalList<IEdge<int, string>> path = AdjacencyMapGraph<string, int>.ConstructPath(countryMap, v5, v2);
+
+Console.WriteLine($"Path length: {path.Size()}");
+
+//int count = path.Size();
+
+/// NOTE: SOMETHING IS WRONG WITH THE ORDER IN WHICH THE DESTINATION AND ITS ADJACENT VERTEX ARE DISPLAYED!!!!
+while (!path.IsEmpty())
+{
+    var pos = path.First();
+    var edge = pos!.GetElement();
+
+    if (path.Size() > 1)
+    {
+        Console.Write(edge!.GetEndpoints()![0].GetElement());
+        Console.Write(" -> ");
+    }
+    else
+    {
+        Console.Write(edge!.GetEndpoints()![1].GetElement());
+        Console.Write(" -> ");
+        Console.Write(edge!.GetEndpoints()![0].GetElement());
+    }
+
+
+    path.Remove(pos);
+}
+    
+
+Console.WriteLine();
+
 
 
 /*
