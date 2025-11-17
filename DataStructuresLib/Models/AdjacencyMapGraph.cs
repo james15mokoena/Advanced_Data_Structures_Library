@@ -34,16 +34,16 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
     /// <param name="graph"></param>
     /// <param name="startVertex"></param>
     /// <param name="discoveryEdges">It associates each vertex with the edge that discovers it.</param>
-    public static void DFS(IGraph<TVertex, TEdge> graph, IVertex<TVertex, TEdge> startVertex, HashMap<IVertex<TVertex,TEdge>,IEdge<TEdge,TVertex>> discoveryEdges)
+    public static void DFS(IGraph<TVertex, TEdge> graph, IVertex<TVertex, TEdge> startVertex, HashMap<IVertex<TVertex, TEdge>, IEdge<TEdge, TVertex>> discoveryEdges)
     {
-        if(graph is AdjacencyMapGraph<TVertex,TEdge> grp && startVertex is Vertex<TVertex,TEdge> vertex)
+        if (graph is AdjacencyMapGraph<TVertex, TEdge> grp && startVertex is Vertex<TVertex, TEdge> vertex)
         {
             if (!vertex.IsVisited())
             {
                 // mark the vertex as "visited".
                 vertex.SetVisited(true);
 
-                foreach(var edge in vertex.GetOutgoingEdges().Values())
+                foreach (var edge in vertex.GetOutgoingEdges().Values())
                 {
                     if (!edge.IsVisited())
                     {
@@ -59,13 +59,58 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
                             ((Edge<TEdge, TVertex>)edge).SetVisited(true);
 
                             // visit the discovered vertex.
-                            DFS(grp, adjVertex, discoveryEdges);   
-                        }                        
+                            DFS(grp, adjVertex, discoveryEdges);
+                        }
+                        // mark the edge as visited
+                        else
+                            ((Edge<TEdge, TVertex>)edge).SetVisited(true);
                     }
                 }
             }
         }
+    }
+    
+    /// <summary>
+    /// It constructs a path from the origin vertex to the destination vertex and returns the path, if it exists.
+    /// </summary>
+    /// <param name="graph"></param>
+    /// <param name="origin"></param>
+    /// <param name="dest"></param>
+    /// <param name="forest"></param>
+    /// <returns></returns>
+    public static IPositionalList<IEdge<TEdge,TVertex>> ConstructPath(IGraph<TVertex, TEdge> graph, IVertex<TVertex, TEdge> origin,
+                    IVertex<TVertex,TEdge> dest)
+    {
+        // will store the result of DFS on the graph.
+        HashMap<IVertex<TVertex, TEdge>, IEdge<TEdge, TVertex>> forest = new();
+
+        // perform DFS on the graph, to get the forest.
+        DFS(graph, origin, forest);
         
+        // will store the edges from the origin vertex to the destination vertex.
+        DLinkedList<IEdge<TEdge, TVertex>> path = new();
+
+        // check if dest was discovered during DFS.
+        if(forest.GetValue(dest) != null)
+        {
+            // will be used to construct the path from back to front.
+            IVertex<TVertex, TEdge> currVertex = dest;
+
+            while(currVertex != origin)
+            {
+                // get the discovery edge
+                var edge = forest.GetValue(currVertex)!;
+
+                // add the edge to the front so that the path is ordered from origin to dest
+                path.AddFirst(edge);
+                
+                // get the opposite vertex
+                currVertex = graph.Opposite(currVertex, edge)!;
+            }
+
+        }
+
+        return path;
     }
 
     /// <summary>
