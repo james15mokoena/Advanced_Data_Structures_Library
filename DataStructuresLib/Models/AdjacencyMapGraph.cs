@@ -166,7 +166,6 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
         return 0;
     }
 
-
     public IEdge<TEdge,TVertex>? InsertEdge(IVertex<TVertex,TEdge> origin, IVertex<TVertex,TEdge> destination, TEdge element)
     {
         if (origin is Vertex<TVertex,TEdge> orig && destination is Vertex<TVertex,TEdge> dest)
