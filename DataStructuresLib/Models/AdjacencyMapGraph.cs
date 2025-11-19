@@ -1,5 +1,4 @@
 
-using System.Collections;
 using DataStructuresLib.Exceptions;
 
 namespace DataStructuresLib.Models;
@@ -33,41 +32,77 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
     /// </summary>
     /// <param name="graph"></param>
     /// <param name="startVertex"></param>
-    /// <param name="discoveryEdges">It associates each vertex with the edge that discovers it.</param>
-    public static void DFS(IGraph<TVertex, TEdge> graph, IVertex<TVertex, TEdge> startVertex, HashMap<IVertex<TVertex, TEdge>, IEdge<TEdge, TVertex>> discoveryEdges)
+    /// <param name="forest">It associates each vertex with the edge that discovers it.</param>
+    public static void DFS(IGraph<TVertex, TEdge> graph, IVertex<TVertex, TEdge> startVertex, HashMap<IVertex<TVertex, TEdge>, IEdge<TEdge, TVertex>> forest)
     {
-        if (graph is AdjacencyMapGraph<TVertex, TEdge> grp && startVertex is Vertex<TVertex, TEdge> vertex)
+        var adjGraph = ToAdjacencyMapGraph(graph);
+        var vertex = ToVertex(startVertex);
+
+        if (!vertex.IsVisited())
         {
-            if (!vertex.IsVisited())
+            // mark the vertex as visited
+            vertex.SetVisited(true);
+
+            foreach (Edge<TEdge, TVertex> edge in vertex.GetOutgoingEdges().Values().Cast<Edge<TEdge,TVertex>>())
             {
-                // mark the vertex as "visited".
-                vertex.SetVisited(true);
-
-                foreach (var edge in vertex.GetOutgoingEdges().Values())
+                if (!edge.IsVisited())
                 {
-                    if (!edge.IsVisited())
+                    // mark the edge as visited.
+                    edge.SetVisited(true);
+
+                    // get the adjacent vertex
+                    Vertex<TVertex, TEdge> adjVertex = ToVertex(adjGraph.Opposite(vertex, edge));
+
+                    if (!adjVertex.IsVisited())
                     {
-                        // get the adjacent vertex
-                        IVertex<TVertex, TEdge> adjVertex = grp.Opposite(startVertex, edge)!;
+                        // record the discovered vertex, along with its tree edge (discovery edge).
+                        forest.Put(adjVertex, edge);
 
-                        if (!adjVertex.IsVisited())
-                        {
-                            // record the discovery edge with the discovered vertex.
-                            discoveryEdges.Put(adjVertex, edge);
-
-                            // mark the edge as visited
-                            ((Edge<TEdge, TVertex>)edge).SetVisited(true);
-
-                            // visit the discovered vertex.
-                            DFS(grp, adjVertex, discoveryEdges);
-                        }
-                        // mark the edge as visited
-                        else
-                            ((Edge<TEdge, TVertex>)edge).SetVisited(true);
+                        // visit the adjacent vertex.
+                        DFS(graph, adjVertex, forest);
                     }
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Converts an instance of <b>IGraph</b> to <b>AdjacencyMapGraph</b>.
+    /// </summary>
+    /// <param name="graph"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidCastException"></exception>
+    private static AdjacencyMapGraph<TVertex, TEdge> ToAdjacencyMapGraph(IGraph<TVertex, TEdge>? graph)
+    {
+        if (graph is AdjacencyMapGraph<TVertex, TEdge> g)
+            return g;
+        throw new InvalidCastException("Cannot cast to AdjacencyMapGraph");
+    }
+
+    /// <summary>
+    /// Converts an instance of <b>IVertex</b> to <b>Vertex</b>.
+    /// </summary>
+    /// <param name="vertex"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidCastException"></exception>
+    private static Vertex<TVertex, TEdge> ToVertex(IVertex<TVertex, TEdge>? vertex)
+    {
+        if (vertex is Vertex<TVertex, TEdge> v)
+            return v;
+        throw new InvalidCastException("Cannot cast to Vertex");
+    }
+    
+    /// <summary>
+    /// Converts an instance of <b>IEdge</b> to <b>Edge</b>.
+    /// </summary>
+    /// <param name="edge"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidCastException"></exception>
+    private static Edge<TEdge,TVertex> ToEdge(IEdge<TEdge,TVertex>? edge)
+    {
+        if (edge is Edge<TEdge,TVertex> e)
+            return e;
+        throw new InvalidCastException("Cannot cast to Edge");
     }
     
     /// <summary>
@@ -76,7 +111,6 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
     /// <param name="graph"></param>
     /// <param name="origin"></param>
     /// <param name="dest"></param>
-    /// <param name="forest"></param>
     /// <returns></returns>
     public static IPositionalList<IEdge<TEdge,TVertex>> ConstructPath(IGraph<TVertex, TEdge> graph, IVertex<TVertex, TEdge> origin,
                     IVertex<TVertex,TEdge> dest)
@@ -101,13 +135,12 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
                 // get the discovery edge
                 var edge = forest.GetValue(currVertex)!;
 
-                // add the edge to the front so that the path is ordered from origin to dest
-                path.AddFirst(edge);
-                
                 // get the opposite vertex
                 currVertex = graph.Opposite(currVertex, edge)!;
+                
+                // add the edge to the front so that the path is ordered from origin to dest
+                path.AddFirst(edge);
             }
-
         }
 
         return path;
@@ -128,62 +161,52 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
         }
     }
 
-    public IVertex<TVertex,TEdge>[]? EndVertices(IEdge<TEdge,TVertex> edge)
-    {
-        if (edge is Edge<TEdge,TVertex> realEdge)
-            return realEdge.GetEndpoints();
-        return null;
-    }
+    public IVertex<TVertex, TEdge>[]? EndVertices(IEdge<TEdge, TVertex> edge) => ToEdge(edge).GetEndpoints();
 
     public IEdge<TEdge,TVertex>? GetEdge(IVertex<TVertex,TEdge> origin, IVertex<TVertex,TEdge> destination)
     {
-        IEdge<TEdge,TVertex>? edge = null;
+        IEdge<TEdge, TVertex>? edge = null;
+        var orig = ToVertex(origin);
+        var dest = ToVertex(destination);
 
-        if (origin is Vertex<TVertex,TEdge> orig && destination is Vertex<TVertex,TEdge> dest)
-        {
-            if (orig.GetOutgoingEdges().Size() <= dest.GetIncomingEdges().Size())
-                edge = orig.GetOutgoingEdges().GetValue(dest);
-            else if (dest.GetIncomingEdges().Size() < orig.GetOutgoingEdges().Size())
-                edge = dest.GetIncomingEdges().GetValue(orig);
-        }
+        if (orig.GetOutgoingEdges().Size() <= dest.GetIncomingEdges().Size())
+            edge = orig.GetOutgoingEdges().GetValue(dest);
+        else if (dest.GetIncomingEdges().Size() < orig.GetOutgoingEdges().Size())
+            edge = dest.GetIncomingEdges().GetValue(orig);
 
         return edge;
     }
 
     public IEnumerable<IEdge<TEdge,TVertex>>? IncomingEdges(IVertex<TVertex,TEdge> vertex)
     {
-        if(vertex is Vertex<TVertex,TEdge> realVertex && !realVertex.GetIncomingEdges().IsEmpty())
+        var realVertex = ToVertex(vertex);
+        if(!realVertex.GetIncomingEdges().IsEmpty())
         {
             foreach (var edge in realVertex.GetIncomingEdges().Values())
                 yield return edge;
         }
     }
 
-    public int InDegree(IVertex<TVertex,TEdge> vertex)
-    {
-        if (vertex is Vertex<TVertex,TEdge> vert)
-            return vert.GetIncomingEdges().Size();
-        return 0;
-    }
+    public int InDegree(IVertex<TVertex,TEdge> vertex) => ToVertex(vertex).GetIncomingEdges().Size();
 
     public IEdge<TEdge,TVertex>? InsertEdge(IVertex<TVertex,TEdge> origin, IVertex<TVertex,TEdge> destination, TEdge element)
     {
-        if (origin is Vertex<TVertex,TEdge> orig && destination is Vertex<TVertex,TEdge> dest)
-        {
-            // No parallel edges or self-loops are allowed.            
-            if (GetEdge(orig, dest) is null && GetEdge(dest, orig) is null && orig != dest)
-            {                
-                Edge<TEdge, TVertex> newEdge = new(orig, dest, element);
-                newEdge.SetPosition(_edges.AddLast(newEdge));
-                orig.GetOutgoingEdges().Put(dest, newEdge);
-                dest.GetIncomingEdges().Put(orig, newEdge);
-                return newEdge;
-            }
-            else if(orig != dest)
-                throw new EdgeExistsException("An edge already exists between these vertices. Simple graphs (directed or undirected) do not allow parallel edges.");
-            else if (orig == dest)
-                throw new EdgeExistsException("Simple graphs (directed or undirected) do not allow self-loops.");
+        var orig = ToVertex(origin);
+        var dest = ToVertex(destination);
+        
+        // No parallel edges or self-loops are allowed.            
+        if (GetEdge(orig, dest) is null && GetEdge(dest, orig) is null && orig != dest)
+        {                
+            Edge<TEdge, TVertex> newEdge = new(orig, dest, element);
+            newEdge.SetPosition(_edges.AddLast(newEdge));
+            orig.GetOutgoingEdges().Put(dest, newEdge);
+            dest.GetIncomingEdges().Put(orig, newEdge);
+            return newEdge;
         }
+        else if(orig != dest)
+            throw new EdgeExistsException("An edge already exists between these vertices. Simple graphs (directed or undirected) do not allow parallel edges.");
+        else if (orig == dest)
+            throw new EdgeExistsException("Simple graphs (directed or undirected) do not allow self-loops.");        
         return null;
     }
 
@@ -200,30 +223,25 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
 
     public IVertex<TVertex,TEdge>? Opposite(IVertex<TVertex,TEdge> endpoint, IEdge<TEdge,TVertex> edge)
     {
-        if (endpoint is Vertex<TVertex,TEdge> realEndpoint && edge is Edge<TEdge,TVertex> realEdge)
-        {
-            // is realEdge incident to/from realEndpoint?
-            if (realEndpoint == realEdge.GetEndpoints()![0])
-                return (IVertex<TVertex,TEdge>?)realEdge.GetEndpoints()![1];
-            else if (realEndpoint == realEdge.GetEndpoints()![1])
-                return (IVertex<TVertex,TEdge>?)realEdge.GetEndpoints()![0];
-            else
-                throw new EdgeNotIncidentException("Edge is not incident to the endpoint.");
-        }
+        var realEndpoint = ToVertex(endpoint);
+        var realEdge = ToEdge(edge);
         
-        return null;
+        // is realEdge incident to/from realEndpoint?
+        if (realEndpoint == realEdge.GetEndpoints()![0])
+            return ToVertex(realEdge.GetEndpoints()![1]);
+        else if (realEndpoint == realEdge.GetEndpoints()![1])
+            return ToVertex(realEdge.GetEndpoints()![0]);
+        else
+            throw new EdgeNotIncidentException("Edge is not incident to the endpoint.");        
     }
 
-    public int OutDegree(IVertex<TVertex,TEdge> vertex)
-    {
-        if (vertex is Vertex<TVertex,TEdge> vert)
-            return vert.GetOutgoingEdges().Size();
-        return 0;
-    }
+    public int OutDegree(IVertex<TVertex,TEdge> vertex) => ToVertex(vertex).GetOutgoingEdges().Size();
 
     public IEnumerable<IEdge<TEdge,TVertex>>? OutgoingEdges(IVertex<TVertex,TEdge> vertex)
     {
-        if(vertex is Vertex<TVertex,TEdge> realVertex && !realVertex.GetOutgoingEdges().IsEmpty())
+        var realVertex = ToVertex(vertex);
+
+        if(!realVertex.GetOutgoingEdges().IsEmpty())
         {
             foreach (var edge in realVertex.GetOutgoingEdges().Values())
                 yield return edge;
@@ -232,7 +250,9 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
 
     public bool RemoveEdge(IEdge<TEdge,TVertex> edge)
     {
-        if (!_edges.IsEmpty() && edge is Edge<TEdge, TVertex> realEdge)
+        var realEdge = ToEdge(edge);
+
+        if (!_edges.IsEmpty())
         {
             if(realEdge.GetEndpoints()![0] != null && realEdge.GetEndpoints()![1] != null)
             {
@@ -246,7 +266,9 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
 
     public bool RemoveVertex(IVertex<TVertex,TEdge> vertex)
     {
-        if(!_vertices.IsEmpty() && vertex is Vertex<TVertex,TEdge> realVertex)
+        var realVertex = ToVertex(vertex);
+
+        if(!_vertices.IsEmpty())
         {
             // remove all outgoing edges.
             if (!realVertex.GetOutgoingEdges().IsEmpty())
@@ -382,15 +404,7 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
         /// Sets the position in the vertex list of the graph where this vertex is located.
         /// </summary>
         /// <param name="position"></param>
-        public void SetPosition(IPosition<Vertex<V, E>> position)
-        {
-            if (position is IPosition<Vertex<V, E>> pos)
-                _position = pos;
-            else if (position == null)
-                _position = null;
-            else
-                throw new InvalidCastException("Cannot cast IPosition<IVertex<V>> to IPosition<Vertex<V>>, check your types.");
-        }
+        public void SetPosition(IPosition<Vertex<V, E>> position) => _position = position;
 
         public IMap<IVertex<V, E>, IEdge<E,V>> GetIncomingEdges() => _incomingEdges!;
 
@@ -457,11 +471,11 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
         /// </summary>
         private Vertex<V,E>[]? _endpoints;
 
-        public Edge(IVertex<V,E> origin, IVertex<V,E> destination, E element)
+        public Edge(IVertex<V,E>? origin, IVertex<V,E>? destination, E element)
         {
             if (origin is Vertex<V,E> orig && destination is Vertex<V,E> dest)
             {
-                _endpoints = [orig, dest];                
+                _endpoints = [orig, dest];
                 _element = element;
             }
             else
@@ -478,15 +492,7 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
         /// Sets the position in the edge list of the graph where this edge is located.
         /// </summary>
         /// <param name="position"></param>
-        public void SetPosition(IPosition<Edge<E,V>> position)
-        {
-            if (position is IPosition<Edge<E,V>> pos)
-                _position = pos;
-            else if (position == null)
-                _position = null;
-            else
-                throw new InvalidCastException("Cannot cast IPosition<IEdge<E>> to IPosition<Edge<E>>, check your types.");
-        }
+        public void SetPosition(IPosition<Edge<E, V>> position) => _position = position;
 
         /// <summary>
         /// Sets the element to be stored in the edge.
