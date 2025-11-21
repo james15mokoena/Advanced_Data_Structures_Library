@@ -27,10 +27,38 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
     /// </summary>
     private readonly bool _isGraphDirected = isGraphDirected;
 
-    public bool IsGraphConnected()
+    /// <summary>
+    /// Checks if the graph is connected.
+    /// </summary>
+    /// <returns>true if the graph is connected, otherwise false.</returns>
+    public bool IsConnected()
     {
-        bool isConnected = false;
+        // stores discovered vertices
+        DLinkedList<IVertex<TVertex, TEdge>> knownVertices = new();
+        // stores the resulting DFS tree
+        HashMap<IVertex<TVertex, TEdge>, IEdge<TEdge, TVertex>> forest = new();
+        // indicates whether this graph is connected
+        bool isConnected;
 
+        // perform DFS on the graph.
+        DFS(this, knownVertices, _vertices.First()!.GetElement()!, forest);
+
+        isConnected = knownVertices.Size() == _vertices.Size();
+
+        // check if reachability is in two-way for all vertices.
+        if (IsGraphDirected() && isConnected)
+        {
+            // stores discovered vertices
+            DLinkedList<IVertex<TVertex, TEdge>> knownVertices2 = new();
+            // stores the resulting DFS tree
+            HashMap<IVertex<TVertex, TEdge>, IEdge<TEdge, TVertex>> forest2 = new();
+
+            ResetVisitedStatus();
+
+            ReverseDFS(this, knownVertices2, _vertices.First()!.GetElement()!, forest2);
+
+            return knownVertices2.Size() == _vertices.Size();
+        }
 
         return isConnected;
     }
@@ -42,7 +70,7 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
     /// <param name="knownVertices"></param>
     /// <param name="startVertex"></param>
     /// <param name="forest">It associates each vertex with the edge that discovers it.</param>
-    public static void DFS(IGraph<TVertex, TEdge> graph, DLinkedList<IVertex<TVertex,TEdge>> knownVertices,IVertex<TVertex, TEdge> startVertex, HashMap<IVertex<TVertex, TEdge>, IEdge<TEdge, TVertex>> forest)
+    public static void DFS(IGraph<TVertex, TEdge> graph, DLinkedList<IVertex<TVertex, TEdge>> knownVertices, IVertex<TVertex, TEdge> startVertex, HashMap<IVertex<TVertex, TEdge>, IEdge<TEdge, TVertex>> forest)
     {
         var adjGraph = ToAdjacencyMapGraph(graph);
         var vertex = ToVertex(startVertex);
@@ -74,6 +102,67 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
                     }
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// It implements a <b>Depth-First Search</b> traversal of a graph, that visits vertices through
+    /// <b>incoming</b> edges. This method is for testing connectivity for a directed graph.
+    /// </summary>
+    /// <param name="graph"></param>
+    /// <param name="knownVertices"></param>
+    /// <param name="startVertex"></param>
+    /// <param name="forest">It associates each vertex with the edge that discovers it.</param>
+    private static void ReverseDFS(IGraph<TVertex, TEdge> graph, DLinkedList<IVertex<TVertex, TEdge>> knownVertices, IVertex<TVertex, TEdge> startVertex, HashMap<IVertex<TVertex, TEdge>, IEdge<TEdge, TVertex>> forest)
+    {
+        var adjGraph = ToAdjacencyMapGraph(graph);
+        var vertex = ToVertex(startVertex);
+
+        if (!vertex.IsVisited())
+        {
+            // mark the vertex as visited
+            vertex.SetVisited(true);
+            // record the vertex as known
+            knownVertices.AddLast(vertex);
+
+            foreach (Edge<TEdge, TVertex> edge in vertex.GetIncomingEdges().Values().Cast<Edge<TEdge, TVertex>>())
+            {
+                if (!edge.IsVisited())
+                {
+                    // mark the edge as visited.
+                    edge.SetVisited(true);
+
+                    // get the adjacent vertex
+                    Vertex<TVertex, TEdge> adjVertex = ToVertex(adjGraph.Opposite(vertex, edge));
+
+                    if (!adjVertex.IsVisited())
+                    {
+                        // record the discovered vertex, along with its tree edge (discovery edge).
+                        forest.Put(adjVertex, edge);
+
+                        // visit the adjacent vertex.
+                        ReverseDFS(graph, knownVertices, adjVertex, forest);
+                    }
+                }
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Resets (to false) the <b>visited</b> statuses of all vertices and edges in a graph.
+    /// </summary>
+    private void ResetVisitedStatus()
+    {
+        if (!_vertices.IsEmpty())
+        {
+            foreach (var vertex in _vertices)
+                vertex.SetVisited(false);
+        }
+
+        if (!_edges.IsEmpty())
+        {
+            foreach (var edge in _edges)
+                edge.SetVisited(false);
         }
     }
 
@@ -206,21 +295,41 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
     {
         var orig = ToVertex(origin);
         var dest = ToVertex(destination);
-        
-        // No parallel edges or self-loops are allowed.            
-        if (GetEdge(orig, dest) is null && GetEdge(dest, orig) is null && orig != dest)
-        {                
-            Edge<TEdge, TVertex> newEdge = new(orig, dest, element);
-            newEdge.SetPosition(_edges.AddLast(newEdge));
-            orig.GetOutgoingEdges().Put(dest, newEdge);
-            dest.GetIncomingEdges().Put(orig, newEdge);
-            return newEdge;
+
+        if (!IsGraphDirected())
+        {
+            // No parallel edges or self-loops are allowed.            
+            if (GetEdge(orig, dest) is null && GetEdge(dest, orig) is null && orig != dest)
+            {
+                Edge<TEdge, TVertex> newEdge = new(orig, dest, element);
+                newEdge.SetPosition(_edges.AddLast(newEdge));
+                orig.GetOutgoingEdges().Put(dest, newEdge);
+                dest.GetIncomingEdges().Put(orig, newEdge);
+                return newEdge;
+            }
+            else if (orig != dest)
+                throw new EdgeExistsException("An edge already exists between these vertices. Simple graphs (directed or undirected) do not allow parallel edges.");
+            else if (orig == dest)
+                throw new EdgeExistsException("Simple graphs (directed or undirected) do not allow self-loops.");
+            return null;
         }
-        else if(orig != dest)
-            throw new EdgeExistsException("An edge already exists between these vertices. Simple graphs (directed or undirected) do not allow parallel edges.");
-        else if (orig == dest)
-            throw new EdgeExistsException("Simple graphs (directed or undirected) do not allow self-loops.");        
-        return null;
+        else
+        {
+            if (GetEdge(orig, dest) is null)
+            {
+                Edge<TEdge, TVertex> newEdge = new(orig, dest, element);
+                newEdge.SetPosition(_edges.AddLast(newEdge));
+                orig.GetOutgoingEdges().Put(dest, newEdge);
+                dest.GetIncomingEdges().Put(orig, newEdge);
+                return newEdge;
+            }
+            else if (orig != dest)
+                throw new EdgeExistsException("An edge already exists between these vertices. Simple graphs (directed or undirected) do not allow parallel edges.");
+            else if (orig == dest)
+                throw new EdgeExistsException("Simple graphs (directed or undirected) do not allow self-loops.");
+
+            return null;
+        }
     }
 
     public IVertex<TVertex,TEdge> InsertVertex(TVertex element)
