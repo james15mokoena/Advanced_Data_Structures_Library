@@ -24,8 +24,7 @@ Console.WriteLine($"Size: {map.Size()}");
 Console.WriteLine($"Is Cleared: {map.Clear()}");
 Console.WriteLine($"Size: {map.Size()}");*/
 
-
-AdjacencyMapGraph<string, int> countryMap = new(false);
+AdjacencyMapGraph<string, int> countryMap = new(true);
 
 var v1 = countryMap.InsertVertex("Qalabotjha");
 var v2 = countryMap.InsertVertex("Villiers");
@@ -34,22 +33,30 @@ var v4 = countryMap.InsertVertex("Cornelia");
 var v5 = countryMap.InsertVertex("Reitz");
 
 var e1 = countryMap.InsertEdge(v1, v2, 10);
+var e11 = countryMap.InsertEdge(v2, v1, 10);
 var e2 = countryMap.InsertEdge(v1, v3, 30);
+var e22 = countryMap.InsertEdge(v3, v1, 30);
 var e3 = countryMap.InsertEdge(v2, v3, 25);
+//var e33 = countryMap.InsertEdge(v3, v2, 30);
 var e4 = countryMap.InsertEdge(v3, v4, 40);
-var e5 = countryMap.InsertEdge(v5, v4, 25); // HERE'S THE REASON FOR DEST -> ADJ instead of ADJ -> DEST in ConstructPath.
+var e44 = countryMap.InsertEdge(v4, v3, 40);
+var e5 = countryMap.InsertEdge(v5, v4, 25);
+var e55 = countryMap.InsertEdge(v4, v5, 25);
 //var e6 = countryMap.InsertEdge(v5, v1, 25);
 
 // will store the result of DFS on the graph.
 //HashMap<IVertex<string, int>, IEdge<int, string>> forest = new();
+// stores discovered vertices
+//DLinkedList<IVertex<string, int>> knownVertices = new();
 
 // perform DFS
-//AdjacencyMapGraph<string, int>.DFS(countryMap, v1, forest);
+//AdjacencyMapGraph<string, int>.DFS(countryMap, knownVertices,v1, forest);
 
 //Console.WriteLine($"Forest length: {forest.Size()}");
+Console.WriteLine($"Is graph connected: {countryMap.IsConnected()}");
 
 // construct a path.
-IPositionalList<IEdge<int, string>> path = AdjacencyMapGraph<string, int>.ConstructPath(countryMap, v2, v5);
+/*IPositionalList<IEdge<int, string>> path = AdjacencyMapGraph<string, int>.ConstructPath(countryMap, v2, v5);
 
 Console.WriteLine($"Path length: {path.Size()}");
 
@@ -71,7 +78,7 @@ while (!path.IsEmpty())
         Console.Write(" <-> ");
 
     path.Remove(pos);
-}
+}*/
 
 Console.WriteLine();
 
