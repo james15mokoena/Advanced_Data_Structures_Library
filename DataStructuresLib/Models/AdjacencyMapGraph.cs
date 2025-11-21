@@ -27,13 +27,22 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
     /// </summary>
     private readonly bool _isGraphDirected = isGraphDirected;
 
+    public bool IsGraphConnected()
+    {
+        bool isConnected = false;
+
+
+        return isConnected;
+    }
+
     /// <summary>
     /// It implements a <b>Depth-First Search</b> traversal of a graph.
     /// </summary>
     /// <param name="graph"></param>
+    /// <param name="knownVertices"></param>
     /// <param name="startVertex"></param>
     /// <param name="forest">It associates each vertex with the edge that discovers it.</param>
-    public static void DFS(IGraph<TVertex, TEdge> graph, IVertex<TVertex, TEdge> startVertex, HashMap<IVertex<TVertex, TEdge>, IEdge<TEdge, TVertex>> forest)
+    public static void DFS(IGraph<TVertex, TEdge> graph, DLinkedList<IVertex<TVertex,TEdge>> knownVertices,IVertex<TVertex, TEdge> startVertex, HashMap<IVertex<TVertex, TEdge>, IEdge<TEdge, TVertex>> forest)
     {
         var adjGraph = ToAdjacencyMapGraph(graph);
         var vertex = ToVertex(startVertex);
@@ -42,8 +51,10 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
         {
             // mark the vertex as visited
             vertex.SetVisited(true);
+            // record the vertex as known
+            knownVertices.AddLast(vertex);
 
-            foreach (Edge<TEdge, TVertex> edge in vertex.GetOutgoingEdges().Values().Cast<Edge<TEdge,TVertex>>())
+            foreach (Edge<TEdge, TVertex> edge in vertex.GetOutgoingEdges().Values().Cast<Edge<TEdge, TVertex>>())
             {
                 if (!edge.IsVisited())
                 {
@@ -59,7 +70,7 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
                         forest.Put(adjVertex, edge);
 
                         // visit the adjacent vertex.
-                        DFS(graph, adjVertex, forest);
+                        DFS(graph, knownVertices, adjVertex, forest);
                     }
                 }
             }
@@ -117,9 +128,11 @@ public class AdjacencyMapGraph<TVertex, TEdge>(bool isGraphDirected) : IGraph<TV
     {
         // will store the result of DFS on the graph.
         HashMap<IVertex<TVertex, TEdge>, IEdge<TEdge, TVertex>> forest = new();
+        // will store known/discovered vertices
+        DLinkedList<IVertex<TVertex, TEdge>> knownVertices = new();
 
         // perform DFS on the graph, to get the forest.
-        DFS(graph, origin, forest);
+        DFS(graph, knownVertices,origin, forest);
         
         // will store the edges from the origin vertex to the destination vertex.
         DLinkedList<IEdge<TEdge, TVertex>> path = new();
