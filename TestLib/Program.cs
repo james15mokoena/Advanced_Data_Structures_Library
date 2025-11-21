@@ -25,7 +25,7 @@ Console.WriteLine($"Is Cleared: {map.Clear()}");
 Console.WriteLine($"Size: {map.Size()}");*/
 
 
-AdjacencyMapGraph<string, int> countryMap = new(true);
+AdjacencyMapGraph<string, int> countryMap = new(false);
 
 var v1 = countryMap.InsertVertex("Qalabotjha");
 var v2 = countryMap.InsertVertex("Villiers");
