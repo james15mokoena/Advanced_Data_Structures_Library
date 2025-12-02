@@ -1,4 +1,16 @@
-﻿using DataStructuresLib.Models;
+﻿using DataStructuresLib.Text.PatternMatching;
+
+///////////////////// Test: Text Processing /////////////////////
+
+string name = "Pheello James Mokoena";
+string pattern = "koena";
+
+Console.WriteLine($"Start index: {PatternMatching.FindWithBrute([.. name],[.. pattern])}");
+
+///////////////////// Test: End /////////////////////
+
+
+///////////////////// Test: Graph /////////////////////
 
 /*
 DLinkedList<string> names = new();
@@ -24,7 +36,7 @@ Console.WriteLine($"Size: {map.Size()}");
 Console.WriteLine($"Is Cleared: {map.Clear()}");
 Console.WriteLine($"Size: {map.Size()}");*/
 
-AdjacencyMapGraph<string, int> countryMap = new(true);
+/*AdjacencyMapGraph<string, int> countryMap = new(true);
 
 var v1 = countryMap.InsertVertex("Qalabotjha");
 var v2 = countryMap.InsertVertex("Villiers");
@@ -53,7 +65,7 @@ var e55 = countryMap.InsertEdge(v4, v5, 25);
 //AdjacencyMapGraph<string, int>.DFS(countryMap, knownVertices,v1, forest);
 
 //Console.WriteLine($"Forest length: {forest.Size()}");
-Console.WriteLine($"Is graph connected: {countryMap.IsConnected()}");
+Console.WriteLine($"Is graph connected: {countryMap.IsConnected()}");*/
 
 // construct a path.
 /*IPositionalList<IEdge<int, string>> path = AdjacencyMapGraph<string, int>.ConstructPath(countryMap, v2, v5);
@@ -114,3 +126,5 @@ Console.WriteLine($"Num Edges: {countryMap.NumEdges()}");
 Console.WriteLine($"Remove Vertex: {countryMap.RemoveVertex(v3)}");
 Console.WriteLine($"Num vertices: {countryMap.NumVertices()}");
 Console.WriteLine($"Num Edges: {countryMap.NumEdges()}");*/
+
+///////////////////// Test: End /////////////////////
