@@ -424,7 +424,7 @@ public class HashMap<TKey, TValue> : IMap<TKey, TValue>
 
         public override int GetHashCode()
         {
-            return HashCode.Combine<K, V>(_key!, _value!);
+            return HashCode.Combine(_key!, _value!);
         }
 
         public override string ToString()

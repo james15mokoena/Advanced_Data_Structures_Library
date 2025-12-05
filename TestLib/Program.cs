@@ -2,10 +2,10 @@
 
 ///////////////////// Test: Text Processing /////////////////////
 
-string name = "Pheello James Mokoena";
-string pattern = "koena";
+string name = "Pheello";
+string pattern = "llo";
 
-Console.WriteLine($"Start index: {PatternMatching.FindWithBrute([.. name],[.. pattern])}");
+Console.WriteLine($"Start index: {PatternMatching.FindWithBoyerMoore([.. name],[.. pattern])}");
 
 ///////////////////// Test: End /////////////////////
 
