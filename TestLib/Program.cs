@@ -1,11 +1,34 @@
-﻿using DataStructuresLib.Text.PatternMatching;
+﻿using DataStructuresLib.Models;
+using DataStructuresLib.Text.PatternMatching;
 
 ///////////////////// Test: Text Processing /////////////////////
 
 string name = "Pheello";
-string pattern = "llo";
+string pattern = "ello";
 
-Console.WriteLine($"Start index: {PatternMatching.FindWithBoyerMoore([.. name],[.. pattern])}");
+HashMap<char, int> last = new();
+
+for (int i = 0; i < name.Length; ++i)
+    last.Put(name[i], -1);
+
+Console.WriteLine($"Length: {last.Size()}");
+
+foreach (var e in last.EntrySet())
+    Console.WriteLine(e);
+
+Console.WriteLine();
+
+for (int i = 0; i < pattern.Length; ++i)
+    last.Put(pattern[i], i);
+
+Console.WriteLine($"Length: {last.Size()}");
+
+foreach (var e in last.EntrySet())
+    Console.WriteLine(e);
+
+Console.WriteLine();
+
+//Console.WriteLine($"Start index: {PatternMatching.FindWithBoyerMoore([.. name],[.. pattern])}");
 
 ///////////////////// Test: End /////////////////////
 

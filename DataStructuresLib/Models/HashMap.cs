@@ -1,3 +1,6 @@
+using System.Numerics;
+using System.Xml;
+
 namespace DataStructuresLib.Models;
 
 /// <summary>
@@ -283,21 +286,22 @@ public class HashMap<TKey, TValue> : IMap<TKey, TValue>
         }
     }
 
-    // TC: O(n), becuase it depends on the ResizeTable() method that runs in O(n).
     public TValue? Put(TKey key, TValue value)
     {
         // O(1)
         int hash = ComputeHash(key);
 
+        // check if the key exists.
+        TKey? exKey = KeySet().FirstOrDefault(k => k!.Equals(key));
+
         // O(n)
-        if (hash >= 0 && hash < _table?.Length && (GetValue(key) is null || GetValue(key)!.Equals(default(TValue))) && _table[hash] is DLinkedList<MapEntry<TKey, TValue>> bucket)
+        if (hash >= 0 && hash < _table?.Length && (exKey is null || !exKey.Equals(key)) && _table[hash] is DLinkedList<MapEntry<TKey, TValue>> bucket1)
         {
-            
             // O(1)
-            if ((double)_size / (double)_table.Length >= 0.7)
+            if (_size / (double)_table.Length >= 0.7)
             {
                 // O(1)
-                bucket.AddLast(new(key, value));
+                bucket1.AddLast(new(key, value));
                 // O(1)
                 ++_size;
                 // O()
@@ -305,16 +309,16 @@ public class HashMap<TKey, TValue> : IMap<TKey, TValue>
                 return default;
             }
             else
-                bucket.AddLast(new(key, value));
+                bucket1.AddLast(new(key, value));
 
             ++_size;
             return default;
         }
-        else if (hash >= 0 && hash < _table?.Length && GetValue(key) is TValue oldValue && _table[hash] is DLinkedList<MapEntry<TKey, TValue>> bucket1)
+        else if (hash >= 0 && hash < _table?.Length && GetValue(key) is TValue oldValue && _table[hash] is DLinkedList<MapEntry<TKey, TValue>> bucket)
         {
-            bucket1.Set(bucket1.FindPosition(new(key, oldValue)), new(key, value));
+            bucket.Set(bucket.FindPosition(new(key, oldValue)), new(key, value));
             return oldValue;
-        }
+        } 
 
         return default;
     }
